@@ -15,7 +15,7 @@ class SiteForm(forms.ModelForm):
 
     class Meta:
         model = Site
-        fields = ('site_name', 'city_name', 'ZIP_code', 'country_code', 'budget', 'area', 'power_req')
+        fields = ('site_name', 'city_name', 'ZIP_code', 'country_code', 'budget', 'area', 'batt_area', 'power_req')
 
 class SiteAnalForm(forms.ModelForm):
     class Meta:

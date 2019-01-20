@@ -69,7 +69,8 @@ def site_analysis(request):
                 b = Site.objects.get(site_name = form.cleaned_data['site_name'].site_name)
                 cc_l = b.country_code.lower()
                 code = str(b.ZIP_code) + ',' + cc_l
-                area = int(b.area)
+                areaS = int(b.area)
+                areaB = int(b.batt_area)
                 budget = b.budget
                 name = b.site_name
                 pr = int(b.power_req)
@@ -94,39 +95,56 @@ def site_analysis(request):
                             names.append(row[0])
                             prices.append(row[1])
                             powers.append(row[2])
+                names2 = []
+                prices2 = []
+                powers2 = []
 
-                def match_index(price, power):
-                    price_diff = abs((float(price) * area) - budget)
-                    power_diff = abs((float(power) * area) - pr)
+                with open('/Users/rohangupta/Desktop/B_db.csv', 'r') as diffdb:
+                    reader = csv.reader(diffdb)
+                    for row in reader:
+                        if (row[0] == "Name of Product"):
+                            continue
+                        else:
+                            names2.append(row[0])
+                            prices2.append(row[1])
+                            powers2.append(row[2])
+
+                def match_index(priceS, powerS, priceB, powerB):
+                    totalPrice = (float(priceS.strip()) * areaS) + (float(priceB.strip()) * areaB)
+                    price_diff = abs(totalPrice - budget)
+                    if (float(powerS) * areaS) < (float(powerB) * areaB):
+                        power_diff = abs((float(powerS) * areaS) - pr)
+                    else:
+                        power_diff = abs((float(powerB) * areaB) - pr)
+
                     final_diff = price_diff + power_diff
                     return final_diff
 
-                diffs = []
+                comboDict = {}
 
+                min_diff = 100000000
                 for x in range(0, len(names)):
-                    final_diff = match_index(prices[x], powers[x])
-                    diffs.append(final_diff)
+                    for y in range(0, len(names)):
+                        final_diff = match_index(prices[x], powers[x], prices2[y], powers2[y])
+                        comboDict[(names[x], names2[y])] = final_diff
+                        if (final_diff <= min_diff):
+                            cap = float(powers[x]) * areaS
+                            fp = float(prices[x])*areaS + float(prices2[y])*areaB
+                            min_diff = final_diff
 
-                ids = []
+                capacity = cap
+                final_price = float(fp)
 
-                for x in range(0, len(diffs)):
-                    ids.append(x)
-
-                dictionary = dict(zip(ids, diffs))
+                print(capacity)
 
                 import operator
-                sorted_dict = sorted(dictionary.items(), key=operator.itemgetter(1))
-
-                m = Site.objects.filter(ZIP_code = b.ZIP_code).exclude(site_name = b.site_name)
+                sorted_dict = sorted(comboDict.items(), key=operator.itemgetter(1))
 
 
-                cap = float(powers[sorted_dict[0][0]]) * float(area)
-                fp = float(prices[sorted_dict[0][0]]) * float(area)
+                final_dict = []
+                for a in range(0,10):
+                    final_dict.append(sorted_dict[a])
 
-                final_names = []
-
-                for x in range(0, len(diffs)):
-                    final_names.append((names[sorted_dict[x][0]]))
 
                 api_address = "https://api.solcast.com.au/pv_power/estimated_actuals?longitude=" + str(long) + "&latitude=" + str(
                     lat) + "&capacity=" + str(cap) + "&api_key=YzazDu3g5WOIg7aDidudsx7n692SCV3N&format=json"
@@ -137,12 +155,12 @@ def site_analysis(request):
                 # FP = final_price   AQZop9;0/[\
 
                 data = []
-
+                m = Site.objects.filter(ZIP_code=b.ZIP_code).exclude(site_name=b.site_name)
                 final_data = {
                     'estimate': int(PV_Estimate),
                     'site_name': b.site_name,
-                    'final_price': int(fp),
-                    'final_order': final_names,
+                    'final_price': final_price,
+                    'final_order': final_dict,
                     'matching_sites': m,
                 }
 

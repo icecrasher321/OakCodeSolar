@@ -27,6 +27,7 @@ class Site(models.Model):
     country_code = models.CharField(help_text="US, IN,..", max_length = 2)
     budget = models.IntegerField()
     area = models.DecimalField(help_text="In Square Meters", max_digits=30, decimal_places= 5)
+    batt_area = models.DecimalField(help_text = "In Square Meters", max_digits = 30, decimal_places =5, default = None, null = True)
     power_req = models.DecimalField(help_text="In Watts", max_digits=30, decimal_places= 5)
 
     def __str__(self):
