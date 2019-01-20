@@ -20,7 +20,7 @@ class Site(models.Model):
     class Meta:
         verbose_name = "Site"
 
-    user = models.ForeignKey( settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default = None, null = True)
+    user = models.ForeignKey( settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default = None, null = True, related_name = 'sites')
     site_name = models.CharField(max_length = 30)
     city_name = models.CharField(max_length=30)
     ZIP_code = models.IntegerField()
@@ -31,5 +31,7 @@ class Site(models.Model):
 
     def __str__(self):
         return self.site_name
+class SiteNames(models.Model):
+    site_name = models.ForeignKey(Site, on_delete=models.CASCADE, default = None, null = True)
 
 

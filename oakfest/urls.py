@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^$', views.Dashboard, name='home'),
     url(r'^logout', views.logout, name='logout'),
     url(r'^site', views.site_view, name='home'),
+    url(r'^analyze', views.site_analysis, name='s_anal'),
 
 
 
